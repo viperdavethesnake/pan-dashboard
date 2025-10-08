@@ -1,10 +1,15 @@
 # Pan-Kom: Panzura Symphony File Share Analytics
 
-A Grafana dashboard system for analyzing Panzura Symphony file share scan data using ClickHouse.
+A Grafana dashboard system with **AI-powered natural language queries** for analyzing Panzura Symphony file share scan data using ClickHouse.
 
 ## What It Does
 
-Imports CSV file share scan data from Panzura Symphony into ClickHouse and provides 6 pre-built Grafana dashboards for visualization and analysis.
+- Imports CSV file share scan data from Panzura Symphony into ClickHouse
+- Provides 6 pre-built Grafana dashboards for visualization
+- **NEW**: AI-powered chat interface for natural language queries ⚡
+  - Ask questions like "How many .docx files older than 3 years?"
+  - Get instant SQL + results (sub-1-second responses)
+  - Perfect for demos and POCs
 
 ## Requirements
 
@@ -61,15 +66,18 @@ python scripts/import_data.py
 ```
 pan-dashboard/
 ├── docker/
-│   ├── compose.yaml             # ClickHouse + Grafana + Importer services
+│   ├── compose.yaml             # All services (ClickHouse, Grafana, AI, Importer)
 │   ├── data/                    # CSV files (not in git)
 │   ├── clickhouse_data/         # ClickHouse storage (bind mount)
 │   ├── grafana_data/            # Grafana storage (bind mount)
+│   ├── open-webui-data/         # AI chat storage (bind mount)
+│   ├── ai-query-service/        # AI query service code
 │   └── grafana/provisioning/    # Dashboard definitions
 ├── scripts/
 │   ├── create_schema.sql        # Database schema
 │   ├── import_data.py           # CSV importer
 │   └── setup_environment.sh     # Environment setup
+├── AI_TESTING_RESULTS.md        # AI system documentation
 └── README.md
 ```
 
@@ -81,6 +89,13 @@ pan-dashboard/
 - **Credentials**: username=`default`, password=`clickhouse`
 - **Database**: `file_share`
 - **Table**: `file_scan`
+
+### AI Query Assistant (NEW) ⚡
+- **URL**: http://localhost:8080 (Open WebUI)
+- **API**: http://localhost:5000 (AI Query Service)
+- **Model**: Mistral Nemo 12B (sub-1-second responses)
+- **Features**: Natural language → SQL → Results
+- **Perfect for**: Demos, POCs, quick analysis
 
 ### Grafana
 - **URL**: http://localhost:3000

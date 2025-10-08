@@ -14,6 +14,7 @@ docker/data/*.CSV
 docker/volumes/
 docker/clickhouse_data/
 docker/grafana_data/
+docker/open-webui-data/
 
 # IDE
 .vscode/

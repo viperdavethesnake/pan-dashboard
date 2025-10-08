@@ -34,6 +34,8 @@ services:
     environment:
       GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
       GF_SECURITY_ADMIN_PASSWORD: panzura
+      #GF_SERVER_ROOT_URL: https://viperdavethesnake.duckdns.org/pan/dashboards
+      #GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     healthcheck:
       test:
         - CMD-SHELL
@@ -81,6 +83,59 @@ services:
         source: /space/projects/pan-dashboard/scripts
         target: /app
     working_dir: /app
+
+  ai-query-service:
+    build:
+      context: /space/projects/pan-dashboard/docker/ai-query-service
+      dockerfile: Dockerfile
+    container_name: pan-ai-query
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+        required: true
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl -fsS --connect-timeout 3 --max-time 5 http://localhost:5000/health || exit 1
+      timeout: 10s
+      interval: 30s
+      retries: 3
+      start_period: 30s
+    network_mode: service:clickhouse
+    restart: unless-stopped
+
+  open-webui:
+    container_name: pan-open-webui
+    depends_on:
+      ai-query-service:
+        condition: service_healthy
+        required: true
+    environment:
+      OLLAMA_BASE_URL: http://192.168.33.197:11434
+      OPENAI_API_BASE_URL: "http://localhost:5000/v1"
+      OPENAI_API_KEY: "dummy-key"
+      WEBUI_AUTH: "False"
+      DEFAULT_MODELS: "file-query-assistant"
+      DEFAULT_USER_ROLE: "user"
+      ENABLE_SIGNUP: "False"
+      WEBUI_NAME: "Pan-Dashboard File Query"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl -fsS --connect-timeout 3 --max-time 5 http://localhost:8080/health || exit 1
+      timeout: 10s
+      interval: 30s
+      retries: 3
+      start_period: 30s
+    image: ghcr.io/open-webui/open-webui:latest
+    network_mode: service:clickhouse
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /space/projects/pan-dashboard/docker/open-webui-data
+        target: /app/backend/data
+        bind:
+          create_host_path: true
 
 networks:
   macvlan_net:
