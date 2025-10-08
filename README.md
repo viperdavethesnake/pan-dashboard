@@ -24,7 +24,7 @@ chmod +x scripts/setup_environment.sh
 ### 2. Place CSV File
 
 ```bash
-mv "your_scan_file.csv" data/symphony_scan.csv
+mv "your_scan_file.csv" docker/data/symphony_scan.csv
 ```
 
 ### 3. Start Services
@@ -42,22 +42,34 @@ cat scripts/create_schema.sql | docker exec -i pan-clickhouse clickhouse-client 
 
 ### 5. Import Data
 
+**Option A: Container Importer (Recommended for macvlan networking)**
+```bash
+cd docker
+docker compose run --rm importer
+```
+
+**Option B: Local Python Script (For bridge networking or development)**
 ```bash
 source venv/bin/activate
 python scripts/import_data.py
 ```
 
+**Note:** If using macvlan networking, the Docker host cannot directly communicate with containers. Use Option A (container importer) which shares the ClickHouse network namespace.
+
 ## Project Structure
 
 ```
 pan-dashboard/
-├── data/                         # CSV files (not in git)
 ├── docker/
-│   ├── docker-compose.yml       # ClickHouse + Grafana services
+│   ├── compose.yaml             # ClickHouse + Grafana + Importer services
+│   ├── data/                    # CSV files (not in git)
+│   ├── clickhouse_data/         # ClickHouse storage (bind mount)
+│   ├── grafana_data/            # Grafana storage (bind mount)
 │   └── grafana/provisioning/    # Dashboard definitions
 ├── scripts/
 │   ├── create_schema.sql        # Database schema
-│   └── import_data.py          # CSV importer
+│   ├── import_data.py           # CSV importer
+│   └── setup_environment.sh     # Environment setup
 └── README.md
 ```
 

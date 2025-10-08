@@ -14,7 +14,7 @@ CLICKHOUSE_HOST = 'localhost'
 CLICKHOUSE_PORT = 8123  # HTTP port for clickhouse-connect
 DATABASE = 'file_share'
 TABLE = 'file_scan'
-CSV_FILE = '../data/symphony_scan.csv'
+CSV_FILE = '/data/symphony_scan.csv'
 BATCH_SIZE = 10000  # Insert in batches for better performance
 
 def parse_boolean(value):

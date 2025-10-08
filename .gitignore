@@ -7,11 +7,13 @@ __pycache__/
 .Python
 
 # Data files (CSV scans can be very large)
-data/*.csv
-data/*.CSV
+docker/data/*.csv
+docker/data/*.CSV
 
 # Docker volumes and data
 docker/volumes/
+docker/clickhouse_data/
+docker/grafana_data/
 
 # IDE
 .vscode/

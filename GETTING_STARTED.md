@@ -101,7 +101,9 @@ cd pan-dashboard
 
 ---
 
-## Step 4: Setup Python Environment
+## Step 4: Setup Python Environment (Optional)
+
+**Note:** This step is optional if you plan to use the containerized importer (recommended for macvlan networking).
 
 ```bash
 # Navigate to project directory
@@ -126,15 +128,15 @@ pip list
 
 ```bash
 # Check CSV file exists
-ls -lh data/symphony_scan.csv
+ls -lh docker/data/symphony_scan.csv
 
 # Should show something like:
-# -rw-r--r-- 1 user user 13G Oct 8 12:00 data/symphony_scan.csv
+# -rw-r--r-- 1 user user 13G Oct 8 12:00 docker/data/symphony_scan.csv
 ```
 
 **If CSV is missing:**
 - Transfer it from your Mac using `scp` or `rsync`
-- Place it in the `data/` directory
+- Place it in the `docker/data/` directory
 - Rename it to `symphony_scan.csv` if needed
 
 ---
@@ -187,23 +189,46 @@ docker exec pan-clickhouse clickhouse-client --password clickhouse --query "SHOW
 
 ## Step 8: Import Data
 
+### Option A: Container Importer (Recommended for Macvlan)
+
+**Use this method if using macvlan networking or if the host cannot reach containers.**
+
+```bash
+# Navigate to docker directory
+cd /home/user/pan-dashboard/docker
+
+# Run the containerized importer
+docker compose run --rm importer
+
+# This will take 2-3 minutes for 24M rows
+# You'll see progress updates every 100k rows
+```
+
+### Option B: Local Python Script (For Bridge Networking)
+
+**Use this method if containers are accessible from the host (bridge or host networking).**
+
 ```bash
 # Make sure you're in the project root
 cd /home/user/pan-dashboard
 
-# Activate virtual environment (if not already active)
+# Activate virtual environment
 source venv/bin/activate
 
 # Run import script
 python scripts/import_data.py
 
 # This will take 2-3 minutes for 24M rows
-# You'll see progress updates every 10k rows
+# You'll see progress updates every 100k rows
 ```
 
-**Expected output:**
+### Why Two Methods?
+
+- **Macvlan networking:** Docker host cannot communicate directly with macvlan containers. The container importer runs inside the ClickHouse network namespace, avoiding this limitation.
+- **Bridge networking:** Host can reach containers via localhost or port mappings. Local Python script works fine.
+
+**Expected output (both methods):**
 ```
-Starting CSV import...
 Connecting to ClickHouse at localhost:8123...
 Successfully connected to ClickHouse
 

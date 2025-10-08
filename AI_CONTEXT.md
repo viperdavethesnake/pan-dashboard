@@ -2,8 +2,8 @@
 
 **Last Updated:** October 8, 2025  
 **Project Status:** Published to GitHub at v1.0.0  
-**Current Phase:** Preparing for Linux server deployment  
-**Next Task:** Clone and deploy on Ubuntu 25 server with macvlan networking
+**Current Phase:** ✅ DEPLOYED on Ubuntu 25 server with macvlan networking  
+**Status:** Fully operational with 25.5M rows imported
 
 ---
 
@@ -83,6 +83,14 @@ cat scripts/create_schema.sql | docker exec -i pan-clickhouse clickhouse-client 
 ```
 
 ### Step 7: Import Data
+
+**Option A: Container Importer (for macvlan)**
+```bash
+cd docker
+docker compose run --rm importer
+```
+
+**Option B: Local Python Script (for bridge networking)**
 ```bash
 source venv/bin/activate
 python scripts/import_data.py
@@ -118,7 +126,7 @@ python scripts/import_data.py
 - Use computed expressions, not ALIAS column references in queries
 
 ### CSV File Details
-- **Location:** `data/symphony_scan.csv` (gitignored)
+- **Location:** `docker/data/symphony_scan.csv` (gitignored)
 - **Source:** Panzura Symphony file share scan export
 - **Format:** 4-line header (Source, Policy, URI, blank line) then CSV data
 - **Typical Size:** ~13GB, 24M+ rows
@@ -204,11 +212,12 @@ These preferences MUST be followed:
 
 ```
 pan-dashboard/
-├── data/
-│   ├── .gitkeep                   # In git
-│   └── symphony_scan.csv          # NOT in git (must transfer separately)
 ├── docker/
-│   ├── docker-compose.yml         # Will modify for macvlan
+│   ├── compose.yaml               # ClickHouse + Grafana + Importer (macvlan)
+│   ├── data/
+│   │   └── symphony_scan.csv      # NOT in git (must transfer separately)
+│   ├── clickhouse_data/           # ClickHouse storage (bind mount, gitignored)
+│   ├── grafana_data/              # Grafana storage (bind mount, gitignored)
 │   └── grafana/
 │       └── provisioning/
 │           ├── datasources/
@@ -218,15 +227,16 @@ pan-dashboard/
 │               └── json/          # 6 dashboard JSON files
 ├── scripts/
 │   ├── create_schema.sql          # Database schema
-│   ├── import_data.py             # CSV importer
+│   ├── import_data.py             # CSV importer (local or container)
 │   └── setup_environment.sh       # Environment setup
-├── venv/                          # Python virtual environment (gitignored)
+├── venv/                          # Python virtual environment (gitignored, optional)
 ├── requirements.txt               # Python dependencies
 ├── .gitignore                     # Git exclusions
 ├── .cursorrules                   # Cursor AI rules (important!)
 ├── README.md                      # Main documentation
 ├── GETTING_STARTED.md             # Linux deployment guide
 ├── DASHBOARD_SUMMARY.md           # Dashboard overview
+├── DEPLOYMENT_STATUS.md           # Current deployment status
 └── AI_CONTEXT.md                  # This file
 ```
 
@@ -279,7 +289,11 @@ docker compose restart pan-clickhouse
 # Create schema
 cat scripts/create_schema.sql | docker exec -i pan-clickhouse clickhouse-client --password clickhouse
 
-# Import data
+# Import data (Option A: Container - for macvlan)
+cd docker
+docker compose run --rm importer
+
+# Import data (Option B: Local Python - for bridge networking)
 source venv/bin/activate
 python scripts/import_data.py
 
