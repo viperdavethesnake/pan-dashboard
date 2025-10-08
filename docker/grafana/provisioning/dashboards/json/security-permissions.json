@@ -1,0 +1,284 @@
+{
+  "title": "Security & Permissions Analysis",
+  "tags": [
+    "file-share",
+    "security",
+    "permissions",
+    "compliance"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "refresh": "5m",
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Files with Unknown/Empty Owner",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT COUNT(*) as count FROM file_share.file_scan WHERE (owner = '' OR owner IS NULL) AND is_directory = 0"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 16,
+          "valueSize": 35
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Files with SID-Only Owners",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT COUNT(*) as count FROM file_share.file_scan WHERE owner LIKE 'S-1-%' AND is_directory = 0"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 16,
+          "valueSize": 35
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Storage by Orphaned Owners (SIDs)",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT SUM(size) as size FROM file_share.file_scan WHERE owner LIKE 'S-1-%' AND is_directory = 0"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 16,
+          "valueSize": 35
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "bytes",
+          "decimals": 2
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Total Unique ACL Patterns",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT COUNT(DISTINCT acl) as count FROM file_share.file_scan WHERE is_directory = 0"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 16,
+          "valueSize": 35
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "barchart",
+      "title": "Files by Owner Type",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT CASE WHEN owner LIKE 'S-1-%' THEN 'Orphaned (SID)' WHEN owner LIKE 'BUILTIN%' THEN 'System (BUILTIN)' WHEN owner LIKE 'NT AUTHORITY%' THEN 'System (NT AUTHORITY)' WHEN owner LIKE '%\\\\%-adm' THEN 'Admin Account' ELSE 'Regular User' END as owner_type, COUNT(*) as file_count FROM file_share.file_scan WHERE is_directory = 0 GROUP BY owner_type ORDER BY file_count DESC"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "owner_type"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "barchart",
+      "title": "Storage by Owner Type",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT CASE WHEN owner LIKE 'S-1-%' THEN 'Orphaned (SID)' WHEN owner LIKE 'BUILTIN%' THEN 'System (BUILTIN)' WHEN owner LIKE 'NT AUTHORITY%' THEN 'System (NT AUTHORITY)' WHEN owner LIKE '%\\\\%-adm' THEN 'Admin Account' ELSE 'Regular User' END as owner_type, SUM(size) as total_size FROM file_share.file_scan WHERE is_directory = 0 GROUP BY owner_type ORDER BY total_size DESC"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "owner_type"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    }
+  ]

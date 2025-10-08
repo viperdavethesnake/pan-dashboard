@@ -1,0 +1,252 @@
+{
+  "title": "Storage Optimization",
+  "tags": [
+    "file-share",
+    "storage",
+    "optimization"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "refresh": "5m",
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Empty/Zero-Byte Files",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT COUNT(*) as count FROM file_share.file_scan WHERE if(size = 0, 1, 0) = 1 AND is_directory = 0"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 16,
+          "valueSize": 35
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Recycle Bin Files",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT COUNT(*) as count FROM file_share.file_scan WHERE path LIKE '%$RECYCLE.BIN%' AND is_directory = 0"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 16,
+          "valueSize": 35
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Recycle Bin Storage",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT SUM(size) as size FROM file_share.file_scan WHERE path LIKE '%$RECYCLE.BIN%' AND is_directory = 0"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 16,
+          "valueSize": 35
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "bytes",
+          "decimals": 2
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Potential Duplicates",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT COUNT(*) as count FROM (SELECT duplicate_hash FROM file_share.file_scan WHERE duplicate_hash != '' AND is_directory = 0 GROUP BY duplicate_hash HAVING COUNT(*) > 1)"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 16,
+          "valueSize": 35
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "barchart",
+      "title": "Storage by File Size Category",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT CASE WHEN size = 0 THEN 'Empty (0 bytes)' WHEN size < 1024 THEN '< 1 KB' WHEN size < 1048576 THEN '1 KB - 1 MB' WHEN size < 10485760 THEN '1 MB - 10 MB' WHEN size < 104857600 THEN '10 MB - 100 MB' WHEN size < 1073741824 THEN '100 MB - 1 GB' ELSE '> 1 GB' END as size_category, COUNT(*) as file_count, SUM(size) as total_size FROM file_share.file_scan WHERE is_directory = 0 GROUP BY size_category ORDER BY CASE size_category WHEN 'Empty (0 bytes)' THEN 1 WHEN '< 1 KB' THEN 2 WHEN '1 KB - 1 MB' THEN 3 WHEN '1 MB - 10 MB' THEN 4 WHEN '10 MB - 100 MB' THEN 5 WHEN '100 MB - 1 GB' THEN 6 ELSE 7 END"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "size_category"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    }
+  ]

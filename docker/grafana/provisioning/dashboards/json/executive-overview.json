@@ -1,0 +1,366 @@
+{
+  "title": "Executive Overview - File Share Analytics",
+  "tags": [
+    "file-share",
+    "executive",
+    "overview"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "refresh": "5m",
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Total Files",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT COUNT(*) as value FROM file_share.file_scan WHERE is_directory = 0"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 18,
+          "valueSize": 40
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Total Storage Used",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT SUM(size) as value FROM file_share.file_scan WHERE is_directory = 0"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 18,
+          "valueSize": 40
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "bytes",
+          "decimals": 2
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Total Directories",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT COUNT(*) as value FROM file_share.file_scan WHERE is_directory = 1"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 18,
+          "valueSize": 40
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Average File Size",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT AVG(size) as value FROM file_share.file_scan WHERE is_directory = 0"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 18,
+          "valueSize": 40
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "bytes",
+          "decimals": 2
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "barchart",
+      "title": "Top 10 Owners by Storage",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT owner, SUM(size) as total_size FROM file_share.file_scan WHERE is_directory = 0 GROUP BY owner ORDER BY total_size DESC LIMIT 10"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "owner",
+        "showValue": "always",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "barchart",
+      "title": "File Count by Extension (Top 15)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT if(extension = '', '(no extension)', extension) as ext, COUNT(*) as count FROM file_share.file_scan WHERE is_directory = 0 GROUP BY extension ORDER BY count DESC LIMIT 15"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "ext",
+        "showValue": "always",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "barchart",
+      "title": "Top 10 Space Consumers by User",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT owner, SUM(size) as total_size FROM file_share.file_scan WHERE is_directory = 0 AND owner != '' GROUP BY owner ORDER BY total_size DESC LIMIT 10"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "owner",
+        "showValue": "always",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "barchart",
+      "title": "Storage by File Type (Top 10)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT if(extension = '', '(no extension)', extension) as ext, SUM(size) as total_size FROM file_share.file_scan WHERE is_directory = 0 GROUP BY extension ORDER BY total_size DESC LIMIT 10"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "ext",
+        "showValue": "always",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    }
+  ]

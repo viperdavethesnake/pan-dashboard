@@ -1,0 +1,251 @@
+# Cursor AI Rules for Pan-Dashboard Project
+
+## Project Context
+This is a Grafana + ClickHouse analytics dashboard for Panzura Symphony file share scan data.
+- Built with Docker Compose (ClickHouse + Grafana containers)
+- Python import scripts for CSV data ingestion
+- 6 pre-built Grafana dashboards
+- Production-ready and fully tested
+
+## User Preferences (CRITICAL - MUST FOLLOW)
+
+### Command Execution
+- **NEVER run commands or scripts without explicit user permission**
+- Always ask before executing any terminal command
+- If user says "do it" or "go ahead", then you may proceed
+- Exception: Read-only operations (file reads, grep, codebase search) are allowed
+
+### Code Changes
+- **NEVER add or change code without user agreement and discussion**
+- Always explain what you plan to change and why
+- Wait for user confirmation before making edits
+- Prefer discussing options before implementing
+
+### Code Style
+- Use **simple Python code** - bare essentials, no frills
+- Avoid unnecessary complexity or over-engineering
+- No mock data or placeholder data in code examples
+- Keep it clean and minimal
+
+### Documentation
+- Keep documentation **factual only**
+- No analytics, suggestions, or action plans in docs
+- No onboarding content unless requested
+- Use copy/paste ready commands where appropriate
+
+## Project-Specific Rules
+
+### Docker Containers
+- Container names: `pan-clickhouse` and `pan-grafana`
+- Network name: `pan-network`
+- Always use these exact names in configs and documentation
+
+### File Paths
+- CSV data location: `data/symphony_scan.csv`
+- CSV files are gitignored (never commit)
+- Docker configs: `docker/docker-compose.yml`
+- Grafana provisioning: `docker/grafana/provisioning/`
+
+### Database
+- Database name: `file_share`
+- Table name: `file_scan`
+- Never reference `file_scan_enriched` (doesn't exist)
+- Use computed expressions instead of ALIAS column references in queries
+
+### Authentication
+- ClickHouse: username=`default`, password=`clickhouse`
+- Grafana: username=`admin`, password=`panzura`
+- Always use these in configs and documentation
+
+### Grafana Dashboards
+- Plugin: `grafana-clickhouse-datasource` v4.11.1
+- **No raw table panels** - plugin doesn't handle non-time-series tables well
+- Use aggregate visualizations: stats, bar charts, time series
+- Never use `"format":"table"` in query JSON (deprecated)
+- All dashboards in "File Share" folder
+
+### Python Development
+- Use virtual environment: `venv/`
+- Dependencies: `clickhouse-connect` (not clickhouse-driver)
+- Python 3.13 compatible
+- Keep scripts simple and well-commented
+
+### Data Domain Knowledge
+- Panzura Symphony CSV format has 4-line header
+- ~24M rows, ~13GB file size typical
+- Fields: path, filename, size, owner (domain\username), dates, ACL
+- Owner format: `DOMAIN\username`
+
+## Technical Stack
+
+### Technologies
+- Docker & Docker Compose
+- ClickHouse (columnar database)
+- Grafana (visualization)
+- Python 3.13
+- Shell scripts (bash/zsh)
+
+### File Types
+- `.sql` - ClickHouse schema and queries
+- `.py` - Python import scripts
+- `.yml` / `.yaml` - Docker and Grafana configs
+- `.json` - Grafana dashboard definitions
+- `.sh` - Shell automation scripts
+- `.md` - Documentation
+
+## Git & Version Control
+
+### Files to Exclude
+Already in `.gitignore`:
+- `venv/` - Python virtual environment
+- `data/*.csv` - CSV files (too large)
+- `__pycache__/` - Python cache
+- `.DS_Store` - macOS files
+- `*.log` - Log files
+
+### Files to Include
+- All source code and scripts
+- All Docker and Grafana configs
+- All documentation
+- `data/.gitkeep` (empty folder marker)
+- `.gitignore` and `.cursorrules`
+
+## Common Tasks
+
+### Starting/Stopping Services
+```bash
+cd docker
+docker compose up -d      # Start
+docker compose down       # Stop
+docker compose restart    # Restart
+docker compose logs -f    # View logs
+```
+
+### Data Import
+```bash
+source venv/bin/activate
+python scripts/import_data.py
+```
+
+### ClickHouse Queries
+```bash
+docker exec pan-clickhouse clickhouse-client --password clickhouse
+```
+
+### Access Points
+- Grafana: http://localhost:3000
+- ClickHouse HTTP: http://localhost:8123
+- ClickHouse Native: tcp://localhost:9000
+
+## Known Issues & Solutions
+
+### Grafana ClickHouse Plugin Limitations
+- **Problem:** Plugin expects time-series data, fails on raw tables
+- **Solution:** Use only aggregate visualizations (stats, bar charts)
+- **Never:** Use raw table panels or pie charts
+
+### ALIAS Column References
+- **Problem:** Queries fail when referencing computed ALIAS columns
+- **Solution:** Use full SQL expression instead (e.g., `dateDiff('day', modify_date, now())`)
+
+### Owner Field Parsing
+- **Format:** `DOMAIN\username`
+- **Domain extraction:** `splitByChar('\\\\', owner)[1]`
+- **Username extraction:** `splitByChar('\\\\', owner)[2]`
+- **Note:** Double backslash escaping required in SQL
+
+### Dashboard JSON Format
+- **Root level:** Dashboard object directly, not wrapped in `"dashboard": {}`
+- **No format parameter:** Don't use `"format":"table"` in queries
+- **Time field:** Not required for aggregate queries
+
+## Documentation Files
+
+- `README.md` - Project overview and quick start
+- `GETTING_STARTED.md` - Complete Linux deployment guide
+- `DASHBOARD_SUMMARY.md` - Factual dashboard descriptions
+- `AI_CONTEXT.md` - Context for AI agents
+- `.cursorrules` - This file
+
+## Workflow Guidelines
+
+### When User Asks for Changes
+1. Discuss the change and options
+2. Wait for user confirmation
+3. Make the change
+4. Explain what was changed
+5. Ask if anything else is needed
+
+### When User Asks to Run Something
+1. Show the command you would run
+2. Explain what it does
+3. Ask for permission to execute
+4. Only run after explicit approval
+
+### When Fixing Issues
+1. Identify the problem
+2. Explain root cause
+3. Propose solution(s)
+4. Discuss with user
+5. Implement after agreement
+
+### When Writing Code
+1. Keep it simple and clean
+2. No unnecessary abstractions
+3. Comment complex logic
+4. Follow Python PEP 8 style
+5. No mock or placeholder data
+
+## Development Environment
+
+### Current Setup
+- macOS 15 (Sequoia) on M4 MacBook Pro
+- Docker Desktop for Apple Silicon
+- Python 3.13 in virtual environment
+- Cursor IDE
+
+### Deployment Target
+- Linux server (Ubuntu/RHEL-based)
+- Docker and Python 3.x
+- 20+ GB disk space
+- See `GETTING_STARTED.md` for details
+
+##禁止事項 (Never Do These)
+
+1. ❌ Run commands without permission
+2. ❌ Change code without discussion
+3. ❌ Add mock or placeholder data
+4. ❌ Add analytics/suggestions to docs
+5. ❌ Commit CSV files to git
+6. ❌ Use deprecated `"format":"table"` in dashboards
+7. ❌ Create raw table panels in Grafana
+8. ❌ Reference non-existent tables (file_scan_enriched)
+9. ❌ Over-engineer simple solutions
+10. ❌ Skip user confirmation on changes
+
+## Quick Reference
+
+### Container Names
+- `pan-clickhouse` - ClickHouse database
+- `pan-grafana` - Grafana visualization
+
+### Volume Names
+- `docker_clickhouse_data` - Database storage
+- `docker_grafana_data` - Grafana settings
+
+### Network Name
+- `pan-network` - Bridge network
+
+### Ports
+- 3000 - Grafana web UI
+- 8123 - ClickHouse HTTP
+- 9000 - ClickHouse native protocol
+
+### Credentials
+- ClickHouse: `default` / `clickhouse`
+- Grafana: `admin` / `panzura`
+
+---
+
+**Remember:** This user values discussion, simplicity, and explicit permission. Always ask before acting.
+

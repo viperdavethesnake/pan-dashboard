@@ -1,0 +1,329 @@
+{
+  "title": "File Aging & Stale Data Analysis",
+  "tags": [
+    "file-share",
+    "aging",
+    "cleanup"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "refresh": "5m",
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Files Not Modified in 1+ Year",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT COUNT(*) as count FROM file_share.file_scan WHERE dateDiff('day', modify_date, now()) >= 365 AND is_directory = 0"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 16,
+          "valueSize": 35
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Storage in 1+ Year Old Files",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT SUM(size) as size FROM file_share.file_scan WHERE dateDiff('day', modify_date, now()) >= 365 AND is_directory = 0"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 16,
+          "valueSize": 35
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              }
+            ]
+          },
+          "unit": "bytes",
+          "decimals": 2
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Files Not Modified in 2+ Years",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT COUNT(*) as count FROM file_share.file_scan WHERE dateDiff('day', modify_date, now()) >= 730 AND is_directory = 0"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 16,
+          "valueSize": 35
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Storage in 2+ Year Old Files",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT SUM(size) as size FROM file_share.file_scan WHERE dateDiff('day', modify_date, now()) >= 730 AND is_directory = 0"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 16,
+          "valueSize": 35
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "bytes",
+          "decimals": 2
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "barchart",
+      "title": "File Count by Modification Age",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT CASE WHEN dateDiff('day', modify_date, now()) < 30 THEN '0-30 days' WHEN dateDiff('day', modify_date, now()) < 90 THEN '30-90 days' WHEN dateDiff('day', modify_date, now()) < 180 THEN '90-180 days' WHEN dateDiff('day', modify_date, now()) < 365 THEN '6-12 months' WHEN dateDiff('day', modify_date, now()) < 730 THEN '1-2 years' WHEN dateDiff('day', modify_date, now()) < 1095 THEN '2-3 years' ELSE '3+ years' END as age_group, COUNT(*) as file_count FROM file_share.file_scan WHERE is_directory = 0 GROUP BY age_group ORDER BY CASE age_group WHEN '0-30 days' THEN 1 WHEN '30-90 days' THEN 2 WHEN '90-180 days' THEN 3 WHEN '6-12 months' THEN 4 WHEN '1-2 years' THEN 5 WHEN '2-3 years' THEN 6 ELSE 7 END"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "age_group",
+        "showValue": "always",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "barchart",
+      "title": "Storage Size by Modification Age",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT CASE WHEN dateDiff('day', modify_date, now()) < 30 THEN '0-30 days' WHEN dateDiff('day', modify_date, now()) < 90 THEN '30-90 days' WHEN dateDiff('day', modify_date, now()) < 180 THEN '90-180 days' WHEN dateDiff('day', modify_date, now()) < 365 THEN '6-12 months' WHEN dateDiff('day', modify_date, now()) < 730 THEN '1-2 years' WHEN dateDiff('day', modify_date, now()) < 1095 THEN '2-3 years' ELSE '3+ years' END as age_group, SUM(size) as total_size FROM file_share.file_scan WHERE is_directory = 0 GROUP BY age_group ORDER BY CASE age_group WHEN '0-30 days' THEN 1 WHEN '30-90 days' THEN 2 WHEN '90-180 days' THEN 3 WHEN '6-12 months' THEN 4 WHEN '1-2 years' THEN 5 WHEN '2-3 years' THEN 6 ELSE 7 END"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "age_group",
+        "showValue": "always",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "barchart",
+      "title": "Files Not Accessed in Over 1 Year (Top Extensions)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PDEE91DDB90597936"
+          },
+          "rawSql": "SELECT if(extension = '', '(no ext)', extension) as ext, COUNT(*) as count FROM file_share.file_scan WHERE dateDiff('day', last_accessed_date, now()) >= 365 AND is_directory = 0 GROUP BY extension ORDER BY count DESC LIMIT 15"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "ext",
+        "showValue": "always",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    }
+  ]
